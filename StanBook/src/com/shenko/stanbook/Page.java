@@ -16,12 +16,14 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
 
-public class GameScreen implements Screen {
+public class Page implements Screen {
 
 	final int PAGE_HEIGHT = 512;
 	final int PAGE_WIDTH = 1024;
+	
+	public StanBook Game;
 
-	public FileHandle PageTextureFile;	
+	public FileHandle PageTextureFile, NextPageTextureFile;	
 	public boolean HasMusic;
 	public FileHandle PageMusicFile;	
 	public boolean HasEntrySound;
@@ -37,7 +39,7 @@ public class GameScreen implements Screen {
 	private boolean ClosingPage = false;
 	
 	private OrthographicCamera Cam;
-	private Texture PageTexture, NextPageTexture, ShadowTexture, CurlTexture;
+	public Texture PageTexture, NextPageTexture, ShadowTexture, CurlTexture;
 	private TextureRegion ShadowRegion, UnderShadowRegion, CurlRegion;
 	private float[] ShadowVerts, UnderShadowVerts, CurlVerts;
 	private Pixmap PagePixmap;
@@ -54,7 +56,7 @@ public class GameScreen implements Screen {
 				PageTurn = 1;
 				OpeningPage = false;
 				TurningPage = false;
-				InitPage();
+				Game.NextPage();
 			}
 		}
 		if (ClosingPage)
@@ -65,7 +67,6 @@ public class GameScreen implements Screen {
 				PageTurn = 0;
 				ClosingPage = false;
 				TurningPage = false;
-				InitPage();
 			}
 		}	
 		// Update point anchors
@@ -84,6 +85,7 @@ public class GameScreen implements Screen {
         // Draw next page
         if (PageTurn != 0)
         {
+        	Batch.setColor(1,1,1,1);
         	Batch.draw(NextPageTexture, 0, 0);
         }
         
@@ -115,11 +117,8 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void show() {
-	
-		PageTextureFile = Gdx.files.internal("data/default1.png");
-		HasMusic = false;
-		HasEntrySound = false;
-		HasExitSound = false;
+		
+		NextPageTexture = new Texture(NextPageTextureFile);
 		
 		Batch = new SpriteBatch();
 		
@@ -265,6 +264,11 @@ public class GameScreen implements Screen {
 		UpdatePage();
 	}
 	
+	public void SetGame(StanBook inGame)
+	{
+		Game = inGame;
+	}
+	
 	public float FLerp(float v0, float v1, float alpha)
 	{
 		return v0 + (v1 - v0) * alpha;
@@ -280,6 +284,7 @@ public class GameScreen implements Screen {
 	
 	public void ClosePage(float Speed)
 	{
+		PageTurn = 1;
 		TurningPage = true;
 		OpeningPage = false;
 		ClosingPage = true;
@@ -364,11 +369,11 @@ public class GameScreen implements Screen {
 
 		@Override
 		public boolean tap(float x, float y, int count, int button) {
-			if (x < 128 && PageTurn != 0)
+			if (x < 128)
 			{
-				ClosePage(0.05f);
+				Game.PreviousPage(0.05f);
 			}
-			else if (x > 896 && PageTurn != 1)
+			else if (x > 896)
 			{
 				OpenPage(0.05f);
 			}
@@ -392,7 +397,7 @@ public class GameScreen implements Screen {
 				}
 				else if (velocityX > 1500)
 				{
-					ClosePage(velocityX / 20000);
+					Game.PreviousPage(velocityX / 20000);
 				}
 			}
 			return true;
@@ -413,7 +418,7 @@ public class GameScreen implements Screen {
 			}
 			else if (x > 768)
 			{
-				ClosePage(0.05f);
+				Game.PreviousPage(0.05f);
 			}
 			else
 			{
